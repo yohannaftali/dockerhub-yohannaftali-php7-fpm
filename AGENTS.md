@@ -50,6 +50,7 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
   scope *Read, Write, Delete*; description updates need Delete scope).
 - **Categories cannot be set via the Docker Hub API** (it silently ignores them). They are set
   by hand in the web UI. Not set yet.
+- **Legacy duplicate Docker Hub repos** (`yohannaftali/yohannaftali-php7-fpm`, `yohannaftali/php7-fpm-with-sendmail`, `yohannaftali/php7-fpm-without-opcache`) are older names for `yohannaftali/php7-fpm`. Other apps still pull them, so they cannot be deleted. They are **frozen**: their overview carries a DEPRECATED notice pointing here (set 2026-10-05) and nothing may be pushed to them (apps may depend on their exact contents). Maintain only `yohannaftali/php7-fpm`.
 - `README.md` is published verbatim as the Hub overview: keep it self-contained, no
   repo-relative links that only work on GitHub.
 

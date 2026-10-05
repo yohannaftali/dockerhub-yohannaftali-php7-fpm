@@ -2,6 +2,9 @@
 
 Newest first. One dated entry per notable change.
 
+## [2026-10-05] — chore: freeze legacy duplicate Docker Hub repos
+- `yohannaftali/yohannaftali-php7-fpm`, `yohannaftali/php7-fpm-with-sendmail`, `yohannaftali/php7-fpm-without-opcache` duplicate `yohannaftali/php7-fpm` and are still pulled by other apps. Added a DEPRECATED overview and short description to each (images untouched, no new pushes) and recorded the policy in `AGENTS.md`. Docker Hub's "Archive repository" setting (web UI) can additionally block pushes.
+
 ## [2026-10-05] — docs: PHP timezone stays UTC
 - Verified that PHP's `date()` reports UTC even though the OS clock is WIB (PHP ignores `TZ` and uses `date.timezone`). Decision: keep PHP on UTC so applications stay datetime-agnostic. README, labels, short description and `AGENTS.md` now say "OS timezone Asia/Jakarta, PHP stays UTC" instead of implying PHP runs on Jakarta time. No Dockerfile behavior change.
 
