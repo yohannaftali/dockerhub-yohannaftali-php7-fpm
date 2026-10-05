@@ -26,7 +26,7 @@ API = "https://hub.docker.com/v2"
 REPO = os.environ.get("DOCKERHUB_REPO", "php7-fpm")
 SHORT_DESCRIPTION = os.environ.get(
     "SHORT_DESCRIPTION",
-    "PHP 7.4-FPM with common extensions, sendmail, Xdebug and Asia/Jakarta timezone.",
+    "PHP 7.4-FPM with common extensions, sendmail, Xdebug. OS time Asia/Jakarta, PHP stays UTC.",
 )
 
 

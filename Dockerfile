@@ -2,7 +2,7 @@ ARG PHP_VERSION=7-fpm
 FROM php:${PHP_VERSION}
 
 LABEL org.opencontainers.image.title="php7-fpm" \
-      org.opencontainers.image.description="PHP 7.4-FPM with common extensions, sendmail, Xdebug and Asia/Jakarta timezone" \
+      org.opencontainers.image.description="PHP 7.4-FPM with common extensions, sendmail, Xdebug, OS timezone Asia/Jakarta, PHP stays UTC" \
       org.opencontainers.image.authors="Yohan Naftali" \
       org.opencontainers.image.source="https://github.com/yohannaftali/dockerhub-yohannaftali-php7-fpm"
 

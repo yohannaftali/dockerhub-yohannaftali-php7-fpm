@@ -61,6 +61,8 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
   pointed at `archive.debian.org`, and xdebug is pinned to `3.1.6` (last release supporting 7.4); do
   not unpin either. `xdebug.remote_*` settings are Xdebug 2 names and are ignored by 3.x. Other behavior belongs to the
   upstream image; do not fork its entrypoint.
+- PHP `date.timezone` is deliberately **not** set (stays UTC, decided 2026-10-05: keep PHP datetime-agnostic).
+  `TZ=Asia/Jakarta` only affects the OS clock. Do not add `date.timezone` without asking.
 - Pinned versions go through the `PHP_VERSION` build arg, not separate Dockerfiles.
 - Python scripts are stdlib-only and run through `uv` (`uv run scripts/dockerhub_update.py`);
   bash and PowerShell wrappers must stay thin and behave identically.
@@ -72,7 +74,8 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
 ```bash
 docker build -t php-test .
 docker run --rm php-test php -v                       # PHP 7.4.x
-docker run --rm php-test date +%Z                     # WIB
+docker run --rm php-test date +%Z                     # WIB (OS)
+docker run --rm php-test php -r 'echo date_default_timezone_get();'   # UTC (by design)
 docker run --rm php-test php-fpm -t                    # config valid
 docker build --build-arg PHP_VERSION=7.4-fpm -t php-test:7.4 .
 uv run scripts/dockerhub_update.py status             # needs .env; read-only

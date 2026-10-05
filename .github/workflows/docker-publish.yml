@@ -46,5 +46,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: yohannaftali/php7-fpm
-          short-description: "PHP 7.4-FPM with common extensions, sendmail, Xdebug and Asia/Jakarta timezone."
+          short-description: "PHP 7.4-FPM with common extensions, sendmail, Xdebug. OS time Asia/Jakarta, PHP stays UTC."
           readme-filepath: ./README.md

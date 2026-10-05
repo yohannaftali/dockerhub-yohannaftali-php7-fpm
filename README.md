@@ -3,7 +3,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/yohannaftali/php7-fpm)](https://hub.docker.com/r/yohannaftali/php7-fpm)
 [![Docker Image Size](https://img.shields.io/docker/image-size/yohannaftali/php7-fpm/latest)](https://hub.docker.com/r/yohannaftali/php7-fpm)
 
-[PHP 7.4-FPM](https://hub.docker.com/_/php) image with common extensions, sendmail and Xdebug, preconfigured with the **Asia/Jakarta (WIB, UTC+7)** timezone.
+[PHP 7.4-FPM](https://hub.docker.com/_/php) image with common extensions, sendmail and Xdebug, with the container clock set to **Asia/Jakarta (WIB, UTC+7)**; PHP itself stays on UTC (see Overview).
 
 - Docker Hub: <https://hub.docker.com/r/yohannaftali/php7-fpm>
 - Source code (Dockerfile, build workflow, scripts): <https://github.com/yohannaftali/dockerhub-yohannaftali-php7-fpm>
@@ -31,7 +31,7 @@ services:
 
 Built `FROM php:7-fpm` (PHP 7.4.33, Debian 11) and adds:
 
-- **Timezone**: `TZ=Asia/Jakarta`.
+- **Timezone**: `TZ=Asia/Jakarta` for the operating system (`date`, logs, cron). PHP's `date.timezone` is intentionally left at its default, UTC, so applications stay timezone-agnostic. Set `date_default_timezone_set()` or `date.timezone` yourself if you need local time.
 - **Extensions**: `gd` (freetype, jpeg, webp libs), `mysqli`, `pdo`, `pdo_mysql`, `pgsql`, `pdo_pgsql`, `xmlrpc`, `zip`, `opcache`, `soap`, `bcmath`, `mbstring`, `pcntl`, `intl`, `apcu`, `xdebug` (3.1.6, the last release supporting PHP 7.4).
 - **Mail**: `sendmail` configured as `sendmail_path`. The entrypoint restarts it on container start.
 - **Hosts entry**: the entrypoint appends the container's IP and hostname to `/etc/hosts` (needed by sendmail).
@@ -74,6 +74,7 @@ Verify the image:
 ```bash
 docker run --rm yohannaftali/php7-fpm php -v
 docker run --rm yohannaftali/php7-fpm date +%Z      # WIB
+docker run --rm yohannaftali/php7-fpm php -r 'echo date_default_timezone_get();'   # UTC (by design)
 docker run --rm yohannaftali/php7-fpm php -m
 ```
 
