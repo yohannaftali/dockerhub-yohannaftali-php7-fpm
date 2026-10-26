@@ -2,6 +2,14 @@
 
 Newest first. One dated entry per notable change.
 
+## [2026-10-26] — feat: PHP 7.4 from packages.sury.org on Debian 13 (PHP2Shell fix)
+- **Why**: the `php:7-fpm` base (Debian 11, PHP 7.4.33 from 2022) gets no fixes, so it stays exposed to PHP2Shell (CVE-2026-109618, CVE-2026-109619). Ondřej Surý's Debian repo (`packages.sury.org/php`, the Debian counterpart of `ppa:ondrej/php`) backported the fix in `7.4.33-31` (2026-10-21, verified in the package changelog).
+- `Dockerfile`: now `FROM debian:trixie-slim` + `php7.4-*` packages from sury (build args `PHP_VERSION=7.4`, `DEBIAN_RELEASE=trixie`). The `archive.debian.org` workaround and the `docker-php-ext-*`/`pecl` steps are gone; xdebug is the `php7.4-xdebug` package (3.1.6). The image keeps the official image's runtime contract (php-fpm foreground on :9000, env passthrough, stderr logs, `/usr/local/etc/php/conf.d`, `/usr/local/etc/php-fpm.d`, `WORKDIR`, `STOPSIGNAL`).
+- New `docker-php-entrypoint` (hosts entry + sendmail restart, as before) and `.gitattributes` rules to keep it LF.
+- PHP timezone: now **Asia/Jakarta** (maintainer decision, reverses the 2026-10-05 "PHP stays UTC" rule). Set explicitly with `date.timezone=${TZ}` in `conf.d/00-timezone.ini`. Apps that assumed PHP UTC will see `date()` shift by +7h.
+- Compatibility: every CLI extension of the old image is present (plus Debian defaults: calendar, exif, FFI, gettext, shmop, sockets, sysv*, xsl). `pcntl` is CLI-only under FPM. Derived images that call `docker-php-ext-install` will break; install `php7.4-<ext>` instead.
+- Workflow: one build tagged `latest` and `7.4` (they were already identical PHP), `pull: true`; README, `AGENTS.md`, tester/coder/reviewer skills updated.
+
 ## [2026-10-05] — chore: freeze legacy duplicate Docker Hub repos
 - `yohannaftali/yohannaftali-php7-fpm`, `yohannaftali/php7-fpm-with-sendmail`, `yohannaftali/php7-fpm-without-opcache` duplicate `yohannaftali/php7-fpm` and are still pulled by other apps. Added a DEPRECATED overview and short description to each (images untouched, no new pushes) and recorded the policy in `AGENTS.md`. Docker Hub's "Archive repository" setting (web UI) can additionally block pushes.
 
