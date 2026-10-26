@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# shell scripts copied into the image must keep LF line endings
+docker-php-entrypoint text eol=lf
+*.sh text eol=lf

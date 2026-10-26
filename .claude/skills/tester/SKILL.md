@@ -32,9 +32,11 @@ docker run --rm php-test date +%Z                         # expect WIB
 docker run --rm php-test php -m                           # gd intl mysqli pdo_mysql pdo_pgsql zip soap apcu xdebug ...
 docker run --rm php-test php-fpm -t                       # config test is successful
 ```
-No "Cannot load Xdebug" or other startup warnings may appear. Also build with
-`--build-arg PHP_VERSION=7.4-fpm` (and any version the change touches).
-For workflow changes: validate the YAML and check the matrix matches the README Tags table.
+No "Cannot load Xdebug" or other startup warnings may appear. Also check `php-fpm -m` has the
+same extensions (minus `pcntl`), and serve one request through nginx -> `php:9000` to confirm
+FPM listens, passes env (`clear_env = no`) and reports `date_default_timezone_get()` = Asia/Jakarta.
+Build any `DEBIAN_RELEASE`/`PHP_VERSION` the change touches.
+For workflow changes: validate the YAML and check the `tags` list matches the README Tags table.
 For script changes: run `status`/`tags` (read-only) with `.env`.
 Always clean up test containers and images you created.
 

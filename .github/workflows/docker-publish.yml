@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
+    # weekly rebuild picks up new PHP 7.4 security builds from packages.sury.org
     - cron: "0 3 * * 1"
   workflow_dispatch:
 
@@ -13,13 +14,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - tag: latest
-            php: 7-fpm
-          - tag: "7.4"
-            php: 7.4-fpm
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -32,8 +26,11 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          build-args: PHP_VERSION=${{ matrix.php }}
-          tags: ${{ env.IMAGE }}:${{ matrix.tag }}
+          build-args: PHP_VERSION=7.4
+          pull: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:7.4
           push: true
 
   description:
@@ -46,5 +43,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: yohannaftali/php7-fpm
-          short-description: "PHP 7.4-FPM with common extensions, sendmail, Xdebug. OS time Asia/Jakarta, PHP stays UTC."
+          short-description: "PHP 7.4-FPM (sury.org, patched) on Debian 13: extensions, sendmail, Xdebug. TZ Asia/Jakarta."
           readme-filepath: ./README.md

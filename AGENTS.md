@@ -17,24 +17,27 @@
 
 ## Big Picture
 
-A tiny repo that builds and publishes a [PHP-FPM](https://hub.docker.com/_/php) image (PHP 7.4)
+A tiny repo that builds and publishes a PHP-FPM image (PHP 7.4 from Ondřej Surý's
+[packages.sury.org](https://packages.sury.org/php/) on `debian:trixie-slim`)
 with common extensions, sendmail and Xdebug, timezone Asia/Jakarta. There is no application code: the product
 is the Docker Hub image and its listing (overview, short description, tags, categories).
 
 ```
-Dockerfile ──► GitHub Actions (build matrix, amd64+arm64) ──► Docker Hub yohannaftali/php7-fpm
+Dockerfile ──► GitHub Actions (one build, tags latest+7.4, amd64+arm64) ──► Docker Hub yohannaftali/php7-fpm
 README.md  ──► peter-evans/dockerhub-description / scripts/dockerhub-update.sh ──► Hub overview
 ```
 
 ## Repository Layout
 
 ```
-Dockerfile                       # FROM php:${PHP_VERSION}; extensions, sendmail, xdebug, TZ=Asia/Jakarta
+Dockerfile                       # FROM debian:${DEBIAN_RELEASE}-slim + sury php${PHP_VERSION}-* packages, sendmail, TZ
+docker-php-entrypoint            # own entrypoint: /etc/hosts entry, sendmail restart, php-fpm default
+.gitattributes                   # keeps the entrypoint LF on Windows checkouts
 README.md                        # human docs AND the Docker Hub overview (synced as-is)
 AGENTS.md / CHANGE_HISTORY.md    # agent guide / dated history
 CLAUDE.md                        # points agents at this file
 .env.example                     # variable names only; real .env is git-ignored
-.github/workflows/docker-publish.yml   # build+push matrix, then description sync
+.github/workflows/docker-publish.yml   # build+push (latest, 7.4), then description sync
 scripts/dockerhub_update.py      # Docker Hub API helper (stdlib only, run via uv)
 scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
 .claude/skills/                  # planner, coder, tester, reviewer (see below)
@@ -42,8 +45,11 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
 
 ## Key Facts
 
-- **Tags** are the `include` matrix in `docker-publish.yml`: `latest` (`php:7-fpm`) and `7.4` (`php:7.4-fpm`).
-  Adding or dropping a version means editing that matrix **and** the Tags table in `README.md`.
+- **Tags** are the `tags` list in `docker-publish.yml`: `latest` and `7.4`, both the same image.
+  Changing tags means editing that list **and** the Tags table in `README.md`.
+- **PHP source**: `packages.sury.org/php` (the Debian counterpart of `ppa:ondrej/php`), keyring from
+  `debsuryorg-archive-keyring.deb`. It still ships security backports for 7.4 (e.g. PHP2Shell,
+  CVE-2026-109618/109619, in `7.4.33-31`); the weekly rebuild is what delivers them, keep it.
 - The workflow runs on push to `main`, weekly (Mon 03:00 UTC, to pick up upstream fixes) and
   manually. The `description` job syncs `README.md` to Docker Hub after all builds pass.
 - **Secrets** (GitHub repo secrets): `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (Docker Hub PAT,
@@ -58,13 +64,17 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
 
 - Never commit `.env` or any token. `.env.example` holds names and placeholders only.
 - Never print tokens in output, logs or commit messages. Refer to them as `$TOKEN`.
-- Keep the Dockerfile close to the official image. Known constraints: PHP 7.4 and Debian 11 are EOL, so apt is
-  pointed at `archive.debian.org`, and xdebug is pinned to `3.1.6` (last release supporting 7.4); do
-  not unpin either. `xdebug.remote_*` settings are Xdebug 2 names and are ignored by 3.x. Other behavior belongs to the
-  upstream image; do not fork its entrypoint.
-- PHP `date.timezone` is deliberately **not** set (stays UTC, decided 2026-10-05: keep PHP datetime-agnostic).
-  `TZ=Asia/Jakarta` only affects the OS clock. Do not add `date.timezone` without asking.
-- Pinned versions go through the `PHP_VERSION` build arg, not separate Dockerfiles.
+- Keep the image **behaviorally compatible with the old `php:7-fpm`-based image** (apps depend on it):
+  `php-fpm` in foreground on `:9000`, `clear_env = no`, logs to stderr, `WORKDIR /var/www/html`,
+  `STOPSIGNAL SIGQUIT`, user ini in `/usr/local/etc/php/conf.d` (via `PHP_INI_SCAN_DIR=:...`),
+  pools in `/usr/local/etc/php-fpm.d` (symlink to `/etc/php/7.4/fpm/pool.d`). `docker-php-ext-*`
+  helpers do not exist; extensions come from `php7.4-*` apt packages. Known gap: `pcntl` is CLI-only.
+- Xdebug comes from `php7.4-xdebug` (3.1.6, last release supporting 7.4). `xdebug.remote_*` settings
+  are Xdebug 2 names and are ignored by 3.x.
+- Timezone is **Asia/Jakarta for both the OS (`TZ`) and PHP** (decided 2026-10-26, replacing the
+  2026-10-05 "PHP stays UTC" rule): `conf.d/00-timezone.ini` sets `date.timezone=${TZ}`.
+  Do not change PHP's timezone without asking.
+- Versions go through the `PHP_VERSION` (`7.4`) and `DEBIAN_RELEASE` (`trixie`) build args, not separate Dockerfiles.
 - Python scripts are stdlib-only and run through `uv` (`uv run scripts/dockerhub_update.py`);
   bash and PowerShell wrappers must stay thin and behave identically.
 - Commit message ends with the attribution trailer configured for the session.
@@ -76,9 +86,9 @@ scripts/dockerhub-update.sh|.ps1 # bash / PowerShell wrappers around `uv run`
 docker build -t php-test .
 docker run --rm php-test php -v                       # PHP 7.4.x
 docker run --rm php-test date +%Z                     # WIB (OS)
-docker run --rm php-test php -r 'echo date_default_timezone_get();'   # UTC (by design)
+docker run --rm php-test php -r 'echo date_default_timezone_get();'   # Asia/Jakarta
 docker run --rm php-test php-fpm -t                    # config valid
-docker build --build-arg PHP_VERSION=7.4-fpm -t php-test:7.4 .
+docker build --build-arg DEBIAN_RELEASE=bookworm -t php-test:bookworm .   # optional
 uv run scripts/dockerhub_update.py status             # needs .env; read-only
 ```
 

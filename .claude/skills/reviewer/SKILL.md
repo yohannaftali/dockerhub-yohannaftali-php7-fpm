@@ -24,7 +24,7 @@ merged yet, say so and stop.
 ## Step 3 — Design and standards audit
 Read the changed files in full and check against `AGENTS.md`:
 - Dockerfile stays minimal on top of the official image; versions via `PHP_VERSION`.
-- Workflow matrix and README Tags table agree.
+- Workflow `tags` list and README Tags table agree.
 - README remains publishable verbatim as the Hub overview.
 - Scripts stdlib-only, run via `uv`, `.sh`/`.ps1` wrappers equivalent.
 - Scope: did the change do only what the issue asked? Extra work becomes its own issue.
@@ -36,7 +36,7 @@ Read the changed files in full and check against `AGENTS.md`:
   new actions or `curl | sh`; base image is the official `php`.
 - **Workflow**: secrets only used where needed; triggers unchanged unless intended; the
   `description` job still depends on all builds.
-- **Correctness**: Dockerfile builds for every matrix version and both platforms; shell and
+- **Correctness**: Dockerfile builds for both platforms; shell and
   Python edge cases (missing `.env`, API errors) fail loudly.
 
 ## Step 5 — Confirm the landing
